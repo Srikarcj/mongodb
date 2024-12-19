@@ -3,6 +3,11 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
 const moment = require('moment');
+const dotenv = require('dotenv');
+
+// Initialize environment variables
+dotenv.config();
+
 const app = express();
 
 // Middleware
@@ -94,6 +99,7 @@ app.post('/login', async (req, res) => {
 });
 
 // Start the server
-app.listen(3005, () => {
-  console.log('Server running on http://localhost:3005');
+const port = process.env.PORT || 3005;
+app.listen(port, () => {
+  console.log(`Server running on http://localhost:${port}`);
 });

@@ -2,17 +2,20 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
-const moment = require('moment');  // For handling date and time
+const moment = require('moment');
 const app = express();
 
 // Middleware
 app.use(express.json());
 app.use(cors());
 
+// MongoDB URI from environment variables
+const dbURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/userAuth';  // Default to local if no env variable set
+
 // Connect to MongoDB
-mongoose.connect('mongodb://127.0.0.1:27017/userAuth', { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB Connected'))
-  .catch((err) => console.log(err));
+  .catch((err) => console.log('MongoDB Connection Error:', err));
 
 // User Schema
 const userSchema = new mongoose.Schema({
@@ -21,12 +24,12 @@ const userSchema = new mongoose.Schema({
   password: String,
   phone: String,
   address: String,
-  registrationCount: { type: Number, default: 1 },  // Track how many times the user registered
-  loginCount: { type: Number, default: 0 },         // Track how many times the user has logged in
-  lastLoginDate: Date,                             // Store the last login date and time
-  lastLoginDay: String,                            // Store the day of the last login
-  lastLoginYear: Number,                           // Store the year of the last login
-  lastLoginTime: String,                           // Store the exact time of the last login
+  registrationCount: { type: Number, default: 1 },
+  loginCount: { type: Number, default: 0 },
+  lastLoginDate: Date,
+  lastLoginDay: String,
+  lastLoginYear: Number,
+  lastLoginTime: String,
 });
 
 const User = mongoose.model('User', userSchema);
@@ -34,7 +37,7 @@ const User = mongoose.model('User', userSchema);
 // Signup Route
 app.post('/signup', async (req, res) => {
   const { name, email, password, phone, address } = req.body;
-  
+
   // Check if user already exists
   const existingUser = await User.findOne({ email });
   if (existingUser) {
@@ -51,7 +54,7 @@ app.post('/signup', async (req, res) => {
     password: hashedPassword,
     phone,
     address,
-    registrationCount: 1,  // Initialize registration count to 1
+    registrationCount: 1,
   });
   await newUser.save();
 
@@ -79,10 +82,10 @@ app.post('/login', async (req, res) => {
 
   // Update the last login details
   const now = moment();
-  user.lastLoginDate = now.format('YYYY-MM-DD'); // Date format
-  user.lastLoginDay = now.format('dddd'); // Day of the week (e.g., "Monday")
-  user.lastLoginYear = now.year(); // Current year
-  user.lastLoginTime = now.format('HH:mm:ss'); // Time format (e.g., "14:30:00")
+  user.lastLoginDate = now.format('YYYY-MM-DD');
+  user.lastLoginDay = now.format('dddd');
+  user.lastLoginYear = now.year();
+  user.lastLoginTime = now.format('HH:mm:ss');
 
   // Save updated user data
   await user.save();
@@ -92,5 +95,5 @@ app.post('/login', async (req, res) => {
 
 // Start the server
 app.listen(3005, () => {
-  console.log('Server running on http://localhost:3001');
+  console.log('Server running on http://localhost:3005');
 });
